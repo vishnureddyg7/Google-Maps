@@ -1,0 +1,25 @@
+import googlemaps
+import pandas as pd
+Api_Keys = "AIzaSyArEq2plJtp9ZFEplMNXd0PIJd2klRNCUw"
+gmaps = googlemaps.Client(Api_Keys)
+
+# List of locations
+origins = ['Delhi, India', 'Mumbai, India', 'Chennai, India']
+destinations = ['Hyderabad, India','West Bengal, India','Bhopal, India']
+
+# Traveling modes, driving, walking, bicycling, transit
+travel_mode = 'driving'
+
+# distance matrix API request
+date = []
+for origin, destination in zip(origins, destinations):
+    result = gmaps.distance_matrix(origin,destination, mode=travel_mode)
+    print(result)
+    if result['rows'][0]['elements'][0]['status'] == 'OK':
+        distance = result['rows'][0]['elements'][0]['distance']['text']
+        duration = result['rows'][0]['elements'][0]['duration']['text']
+        data.append([origin, destination, distance, duration, travel_mode])
+
+# Save to CSV
+df = pd.DataFrame(data, columns=['Origin', 'Destination', 'Distance', 'Duration', 'Mode'])
+df.to_csv('distance & duration by mode.csv', index=False)
