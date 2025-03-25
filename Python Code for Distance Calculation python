@@ -1,6 +1,6 @@
 import googlemaps
 import pandas as pd
-Api_Keys = "AIzaSyArEq2plJtp9ZFEplMNXd0PIJd2klRNCUw"
+Api_Keys = "Add Google Maps API key"
 gmaps = googlemaps.Client(Api_Keys)
 
 # List of locations
