@@ -1,0 +1,26 @@
+import googlemaps
+import pandas as pd
+# Your API Key
+API_KEY = "YOUR_API_KEY"
+gmaps = googlemaps.Client(key=API_KEY)
+
+# List of Coordinates (Latitude, Longitude)
+coordinates = [
+    (40.748817, -73.985428),  # Empire State Building, NY
+    (48.858844, 2.294351),    # Eiffel Tower, Paris
+    (-22.951916, -43.210487)  # Christ the Redeemer, Brazil
+]
+
+# Reverse Geocoding Process
+data = []
+for lat, lng in coordinates:
+    result = gmaps.reverse_geocode((lat, lng))
+    if result:
+        address = result[0]['formatted_address']
+        data.append([lat, lng, address])
+
+# Save to CSV
+df = pd.DataFrame(data, columns=["Latitude", "Longitude", "Address"])
+df.to_csv("reverse_geocoding.csv", index=False)
+
+print("Reverse Geocoding Completed! Check 'reverse_geocoding.csv' for results.")
