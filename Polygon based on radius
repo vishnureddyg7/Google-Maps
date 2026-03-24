@@ -1,0 +1,81 @@
+import requests
+import json
+import csv
+import sys
+
+# ======================
+# CONFIGURATION
+# ======================
+# Login to this site for the API key - https://account.heigit.org/manage/key
+API_KEY = "Your api key"
+
+store_lat = 21.239535
+store_lng = 81.666288
+
+DISTANCE_METERS = 15000
+PROFILE = "driving-car"
+
+MAX_POINTS = 30
+OUTPUT_FILE = "rough_15km_polygon.csv"
+
+# ======================
+# FETCH ISOCHRONE
+# ======================
+
+url = f"https://api.openrouteservice.org/v2/isochrones/{PROFILE}"
+
+headers = {
+    "Authorization": API_KEY,
+    "Content-Type": "application/json"
+}
+
+body = {
+    "locations": [[store_lng, store_lat]],
+    "range": [DISTANCE_METERS],
+    "range_type": "distance",
+    "smoothing": 0.5
+}
+
+try:
+    response = requests.post(url, json=body, headers=headers)
+    response.raise_for_status()
+except requests.exceptions.RequestException as e:
+    print("API Error:", e)
+    sys.exit(1)
+
+data = response.json()
+
+if "features" not in data:
+    print("Invalid response:", data)
+    sys.exit(1)
+
+# ======================
+# EXTRACT OUTER BOUNDARY
+# ======================
+
+coordinates = data["features"][0]["geometry"]["coordinates"][0]
+# coordinates are in [lng, lat]
+
+# ======================
+# REDUCE TO MAX_POINTS
+# ======================
+
+step = max(1, len(coordinates) // MAX_POINTS)
+reduced_coords = coordinates[::step][:MAX_POINTS]
+
+# Ensure polygon closes properly
+if reduced_coords[0] != reduced_coords[-1]:
+    reduced_coords.append(reduced_coords[0])
+
+# ======================
+# SAVE CSV (lat,lng)
+# ======================
+
+with open(OUTPUT_FILE, "w", newline="") as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(["latitude", "longitude"])
+
+    for lng, lat in reduced_coords:
+        writer.writerow([lat, lng])
+
+print(f"✅ Rough polygon with max {MAX_POINTS} points saved to '{OUTPUT_FILE}'")
